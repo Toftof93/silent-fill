@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount, useChainId, usePublicClient, useSwitchChain, useWalletClient } from "wagmi";
-import type { Abi, Address, Hex } from "viem";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { getPublicClient, getWalletClient } from "wagmi/actions";
+import type { Abi, Address, Hex, PublicClient, WalletClient } from "viem";
 import { Header } from "@/components/Header";
 import { auctionAbi, feedAbi, oracleAbi, tokenAbi, vaultAbi } from "@/lib/abi";
 import { auctionBytecode, feedBytecode, oracleBytecode, tokenBytecode, vaultBytecode } from "@/lib/bytecode";
 import { saveLocalDeployment, type Deployment } from "@/lib/market";
 import { errorText } from "@/lib/hooks";
-import { robinhoodTestnet } from "@/lib/wagmi";
+import { config, robinhoodTestnet } from "@/lib/wagmi";
 
 // Testnet launch settings (match scripts/deploy.js defaults).
 const COMMIT_SECONDS = 60n;
@@ -38,9 +39,7 @@ const progressKey = (chainId: number, account: string) => `silentfill:deploy:${c
 export default function DeployPage() {
   const { address, isConnected, chain } = useAccount();
   const chainId = useChainId();
-  const { switchChain, isPending: switching, error: switchError } = useSwitchChain();
-  const { data: wallet } = useWalletClient();
-  const client = usePublicClient();
+  const { switchChain, switchChainAsync, isPending: switching, error: switchError } = useSwitchChain();
 
   const [progress, setProgress] = useState<Progress>({});
   const [running, setRunning] = useState(false);
@@ -64,9 +63,9 @@ export default function DeployPage() {
     } catch {}
   };
 
-  const deploy = async (abi: Abi, bytecode: Hex, args: unknown[]): Promise<Address> => {
-    const hash = await wallet!.deployContract({ abi, bytecode, args, account: address!, chain: wallet!.chain });
-    const receipt = await client!.waitForTransactionReceipt({ hash });
+  const deployWith = (wallet: WalletClient, client: PublicClient) => async (abi: Abi, bytecode: Hex, args: unknown[]): Promise<Address> => {
+    const hash = await wallet.deployContract({ abi, bytecode, args, account: address!, chain: wallet.chain });
+    const receipt = await client.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success" || !receipt.contractAddress) throw new Error("Deployment reverted");
     return receipt.contractAddress;
   };
@@ -76,6 +75,16 @@ export default function DeployPage() {
     setError(null);
     let p = { ...progress };
     try {
+      // Grab the wallet at click time (switching network first if needed) instead of
+      // waiting on a hook, which some wallets are slow to populate.
+      const target = chain?.id === 31337 ? 31337 : robinhoodTestnet.id;
+      if (chain?.id !== target) {
+        setCurrent("Switching network");
+        await switchChainAsync({ chainId: target });
+      }
+      const wallet = await getWalletClient(config, { chainId: target });
+      const client = getPublicClient(config, { chainId: target }) as PublicClient;
+      const deploy = deployWith(wallet, client);
       for (const step of STEPS) {
         if (p[step.key]) continue;
         setCurrent(step.label);
@@ -101,15 +110,15 @@ export default function DeployPage() {
             ]);
             break;
           case "linked": {
-            const hash = await wallet!.writeContract({
+            const hash = await wallet.writeContract({
               address: p.vault!,
               abi: vaultAbi,
               functionName: "setAuction",
               args: [p.auction!, true],
               account: address!,
-              chain: wallet!.chain,
+              chain: wallet.chain,
             });
-            const r = await client!.waitForTransactionReceipt({ hash });
+            const r = await client.waitForTransactionReceipt({ hash });
             if (r.status !== "success") throw new Error("setAuction reverted");
             p.linked = true;
             break;
@@ -197,7 +206,7 @@ export default function DeployPage() {
               </div>
 
               {!done && (
-                <button className="btn btn-primary btn-block" disabled={running || !wallet} onClick={run}>
+                <button className="btn btn-primary btn-block" disabled={running} onClick={run}>
                   {running ? "Deploying…" : Object.keys(progress).length ? "Continue deploy" : "Deploy"}
                 </button>
               )}
