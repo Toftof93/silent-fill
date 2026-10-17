@@ -1,19 +1,18 @@
 "use client";
 
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { Header } from "@/components/Header";
+import { Landing } from "@/components/Landing";
 import { BatchClock } from "@/components/BatchClock";
 import { Balances } from "@/components/Balances";
 import { OrderForm } from "@/components/OrderForm";
 import { MyOrders } from "@/components/MyOrders";
 import { useDeployment, useMarket, useNow } from "@/lib/market";
 import { useSavedOrders } from "@/lib/orders";
-import { visibleChains } from "@/lib/wagmi";
 
 export default function Home() {
   const chainId = useChainId();
   const { address } = useAccount();
-  const { switchChain } = useSwitchChain();
   const deployment = useDeployment();
   const m = useMarket();
   const now = useNow();
@@ -23,21 +22,8 @@ export default function Home() {
     <main className="wrap">
       <Header />
 
-      {!deployment ? (
-        <div className="hero-empty">
-          <h1>Filled. Not seen.</h1>
-          <p>Silent Fill isn’t deployed on this network yet.</p>
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-            <a className="btn btn-primary" href="/deploy" style={{ textDecoration: "none" }}>
-              Deploy it from your wallet →
-            </a>
-            {visibleChains.map((c) => (
-              <button key={c.id} className="btn" onClick={() => switchChain({ chainId: c.id })}>
-                Switch to {c.name}
-              </button>
-            ))}
-          </div>
-        </div>
+      {!address || !deployment ? (
+        <Landing deployed={!!deployment} />
       ) : !m ? (
         <div className="hero-empty">
           <p>Loading market…</p>
