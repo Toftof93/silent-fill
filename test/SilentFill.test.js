@@ -44,7 +44,7 @@ async function commitOrder(auction, signer, isBuy, amount, limitPrice) {
   const salt = ethers.hexlify(ethers.randomBytes(32));
   const c = await auction.computeCommitment(signer.address, batchId, isBuy, amount, limitPrice, salt);
   const index = await auction.orderCount(batchId);
-  await auction.connect(signer).commit(c);
+  await auction.connect(signer).commit(batchId, c);
   return { signer, batchId, index, isBuy, amount, limitPrice, salt };
 }
 
@@ -194,7 +194,8 @@ describe("SilentAuction", () => {
 
     await expect(reveal(auction, o)).to.be.revertedWithCustomError(auction, "NotRevealPhase");
     await toReveal(auction, id);
-    await expect(auction.connect(alice).commit(ethers.ZeroHash)).to.be.revertedWithCustomError(auction, "NotCommitPhase");
+    await expect(auction.connect(alice).commit(id, ethers.ZeroHash)).to.be.revertedWithCustomError(auction, "NotCommitPhase");
+    await expect(auction.connect(alice).commit(id + 1n, ethers.ZeroHash)).to.be.revertedWithCustomError(auction, "NotCommitPhase");
     await expect(reveal(auction, { ...o, amount: ETH(2) })).to.be.revertedWithCustomError(auction, "BadReveal");
     await expect(reveal(auction, { ...o, signer: bob })).to.be.revertedWithCustomError(auction, "NotYourOrder");
     await expect(auction.clear(id)).to.be.revertedWithCustomError(auction, "BatchNotOver");

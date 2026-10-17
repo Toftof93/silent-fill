@@ -150,9 +150,10 @@ contract SilentAuction is Ownable, Pausable, ReentrancyGuard {
 
     // ------------------------------------------------------------------ whisper
 
-    function commit(bytes32 commitment) external whenNotPaused nonReentrant returns (uint256 batchId, uint256 index) {
-        batchId = currentBatch();
-        if (block.timestamp >= revealStart(batchId)) revert NotCommitPhase();
+    /// @param batchId The batch the commitment was computed for. Reverts (instead of silently landing in
+    ///        the next batch and getting the bond slashed) if the tx is mined too late.
+    function commit(uint256 batchId, bytes32 commitment) external whenNotPaused nonReentrant returns (uint256 index) {
+        if (batchId != currentBatch() || block.timestamp >= revealStart(batchId)) revert NotCommitPhase();
         Order[] storage orders = _orders[batchId];
         if (orders.length >= MAX_ORDERS_PER_BATCH) revert BatchFull();
 

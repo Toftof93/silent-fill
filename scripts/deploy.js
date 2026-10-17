@@ -2,7 +2,11 @@
 // mock WETH, mock USDC and a mock ETH/USD feed so you can play on testnet right away.
 //
 //   npx hardhat run scripts/deploy.js --network robinhoodTestnet
-const { ethers } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
+const { ethers, network } = require("hardhat");
+
+const DEPLOYMENTS = path.join(__dirname, "..", "app", "src", "deployments.json");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -39,14 +43,23 @@ async function main() {
   );
   await (await vault.setAuction(auction, true)).wait();
 
-  console.log({
+  const out = {
     base,
     quote,
     feed,
     oracle: await oracle.getAddress(),
     vault: await vault.getAddress(),
     auction: await auction.getAddress(),
-  });
+  };
+  console.log(out);
+
+  // Save for the web app, keyed by chain id.
+  const chainId = String(network.config.chainId || (await ethers.provider.getNetwork()).chainId);
+  const all = fs.existsSync(DEPLOYMENTS) ? JSON.parse(fs.readFileSync(DEPLOYMENTS, "utf8")) : {};
+  all[chainId] = out;
+  fs.mkdirSync(path.dirname(DEPLOYMENTS), { recursive: true });
+  fs.writeFileSync(DEPLOYMENTS, JSON.stringify(all, null, 2) + "\n");
+  console.log(`Saved to app/src/deployments.json under chain ${chainId}`);
 }
 
 main().catch((e) => {

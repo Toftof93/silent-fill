@@ -6,7 +6,10 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy.js --network robinhoodTestnet",
-    "keeper:testnet": "hardhat run scripts/keeper.js --network robinhoodTestnet"
+    "keeper:testnet": "hardhat run scripts/keeper.js --network robinhoodTestnet",
+    "abi": "hardhat compile && node scripts/export-abi.js",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost"
   },
   "keywords": [],
   "author": "",

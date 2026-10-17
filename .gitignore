@@ -5,3 +5,5 @@ cache
 typechain-types
 coverage
 coverage.json
+.next
+next-env.d.ts
