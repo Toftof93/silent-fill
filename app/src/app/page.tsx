@@ -8,7 +8,7 @@ import { OrderForm } from "@/components/OrderForm";
 import { MyOrders } from "@/components/MyOrders";
 import { useDeployment, useMarket, useNow } from "@/lib/market";
 import { useSavedOrders } from "@/lib/orders";
-import { chains } from "@/lib/wagmi";
+import { visibleChains } from "@/lib/wagmi";
 
 export default function Home() {
   const chainId = useChainId();
@@ -31,7 +31,7 @@ export default function Home() {
             <a className="btn btn-primary" href="/deploy" style={{ textDecoration: "none" }}>
               Deploy it from your wallet →
             </a>
-            {chains.map((c) => (
+            {visibleChains.map((c) => (
               <button key={c.id} className="btn" onClick={() => switchChain({ chainId: c.id })}>
                 Switch to {c.name}
               </button>

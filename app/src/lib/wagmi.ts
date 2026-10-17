@@ -17,6 +17,9 @@ export const robinhoodTestnet = defineChain({
 
 export const chains = [robinhoodTestnet, hardhat] as const;
 
+/** Networks offered in the UI. The local Hardhat chain only shows up in `npm run dev`. */
+export const visibleChains = chains.filter((c) => c.id !== hardhat.id || process.env.NODE_ENV === "development");
+
 export const config = createConfig({
   chains,
   connectors: [injected()],
