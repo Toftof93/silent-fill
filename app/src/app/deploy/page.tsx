@@ -36,9 +36,9 @@ const STEPS: Step[] = [
 const progressKey = (chainId: number, account: string) => `silentfill:deploy:${chainId}:${account.toLowerCase()}`;
 
 export default function DeployPage() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
+  const { switchChain, isPending: switching, error: switchError } = useSwitchChain();
   const { data: wallet } = useWalletClient();
   const client = usePublicClient();
 
@@ -131,7 +131,8 @@ export default function DeployPage() {
   const done = !!progress.linked;
   const { linked: _, ...addresses } = progress;
   const json = JSON.stringify({ [String(chainId)]: addresses }, null, 2);
-  const wrongChain = isConnected && chainId !== robinhoodTestnet.id && chainId !== 31337;
+  // `chain` is undefined when the wallet is on a network this app doesn't know.
+  const wrongChain = isConnected && (!chain || (chain.id !== robinhoodTestnet.id && chain.id !== 31337));
 
   const copy = async () => {
     try {
@@ -156,9 +157,24 @@ export default function DeployPage() {
           {!isConnected ? (
             <div className="notice">Connect your wallet first (top right). On a phone, open this page inside your wallet app’s browser.</div>
           ) : wrongChain ? (
-            <button className="btn btn-primary btn-block" onClick={() => switchChain({ chainId: robinhoodTestnet.id })}>
-              Switch to {robinhoodTestnet.name}
-            </button>
+            <>
+              <div className="notice" style={{ marginBottom: 12 }}>
+                Your wallet is on a different network. Switch to {robinhoodTestnet.name} to deploy.
+              </div>
+              <button
+                className="btn btn-primary btn-block"
+                disabled={switching}
+                onClick={() => switchChain({ chainId: robinhoodTestnet.id })}
+              >
+                {switching ? "Check your wallet…" : `Switch to ${robinhoodTestnet.name}`}
+              </button>
+              {switchError && (
+                <div className="status err">
+                  Couldn’t switch automatically. Open your wallet and pick {robinhoodTestnet.name} from its network list, then
+                  reload.
+                </div>
+              )}
+            </>
           ) : (
             <>
               <div className="orders" style={{ margin: "12px 0 16px" }}>
