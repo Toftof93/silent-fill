@@ -15,9 +15,26 @@ export type Deployment = {
   auction: Address;
 };
 
+const LOCAL_DEPLOYMENTS = "silentfill:deployments";
+
+/** Remember a deployment made from the /deploy page so this browser can use it right away. */
+export function saveLocalDeployment(chainId: number, d: Deployment) {
+  try {
+    const all = JSON.parse(localStorage.getItem(LOCAL_DEPLOYMENTS) || "{}");
+    all[String(chainId)] = d;
+    localStorage.setItem(LOCAL_DEPLOYMENTS, JSON.stringify(all));
+  } catch {}
+}
+
 export function useDeployment(): Deployment | undefined {
   const chainId = useChainId();
-  return (deployments as Record<string, Deployment>)[String(chainId)];
+  const [local, setLocal] = useState<Record<string, Deployment>>({});
+  useEffect(() => {
+    try {
+      setLocal(JSON.parse(localStorage.getItem(LOCAL_DEPLOYMENTS) || "{}"));
+    } catch {}
+  }, [chainId]);
+  return (deployments as Record<string, Deployment>)[String(chainId)] ?? local[String(chainId)];
 }
 
 /** Static market parameters + live oracle price. */

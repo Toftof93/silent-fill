@@ -28,6 +28,9 @@ export default function Home() {
           <h1>Filled. Not seen.</h1>
           <p>Silent Fill isn’t deployed on this network yet.</p>
           <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+            <a className="btn btn-primary" href="/deploy" style={{ textDecoration: "none" }}>
+              Deploy it from your wallet →
+            </a>
             {chains.map((c) => (
               <button key={c.id} className="btn" onClick={() => switchChain({ chainId: c.id })}>
                 Switch to {c.name}

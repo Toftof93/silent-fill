@@ -20,6 +20,8 @@ async function main() {
   let base = env.BASE_TOKEN;
   let quote = env.QUOTE_TOKEN;
   let feed = env.PRICE_FEED;
+  // The mock feed never updates by itself, so don't let it go stale on testnet.
+  let maxStaleness = Number(env.MAX_STALENESS || 3600);
 
   if (!base || !quote || !feed) {
     console.log("No token/feed addresses set: deploying mocks");
@@ -28,6 +30,7 @@ async function main() {
     quote = await (await Token.deploy("Silent USDC", "sUSDC", 6)).getAddress();
     const Feed = await ethers.getContractFactory("MockAggregator");
     feed = await (await Feed.deploy(8, 3000n * 10n ** 8n)).getAddress();
+    if (!env.MAX_STALENESS) maxStaleness = 365 * 24 * 3600;
   }
 
   const baseDec = await (await ethers.getContractAt("MockERC20", base)).decimals();
@@ -35,7 +38,7 @@ async function main() {
   const bond = ethers.parseUnits(env.BOND || "10", quoteDec);
 
   const oracle = await (await ethers.getContractFactory("SilentOracle")).deploy(
-    feed, Number(env.MAX_STALENESS || 3600), baseDec, quoteDec
+    feed, maxStaleness, baseDec, quoteDec
   );
   const vault = await (await ethers.getContractFactory("SilentVault")).deploy(deployer.address);
   const auction = await (await ethers.getContractFactory("SilentAuction")).deploy(

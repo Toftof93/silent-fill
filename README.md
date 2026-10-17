@@ -38,6 +38,8 @@ cd app && npm install && npm run dev           # 3. http://localhost:3000
 
 In MetaMask, add the network `http://127.0.0.1:8545` (chain id 31337) and import one of the test private keys that `npm run node` prints. Then use the **Testnet faucet** button.
 
+**Deploy from a phone wallet:** open `/deploy` in your wallet app's browser, tap Deploy and approve 7 transactions. Then put the addresses it shows into `app/src/deployments.json`.
+
 Deploying to Robinhood Chain testnet with `npm run deploy:testnet` also writes the addresses into `app/src/deployments.json`, so the app picks them up automatically.
 
 > The secret (salt) needed to reveal an order is stored in your browser's localStorage. Keep the tab open until Unseal, or you lose the bond.
