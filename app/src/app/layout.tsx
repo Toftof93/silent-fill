@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
+import "@fontsource/instrument-serif/400.css";
+import "@fontsource/instrument-serif/400-italic.css";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -25,13 +29,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <div className="backdrop" aria-hidden>
           <div className="glow-a" />
-          <div className="glow-b" />
-          <div className="grid" />
-          <div className="ripples"><span /><span /><span /><span /></div>
+          <div className="grain" />
           <div className="vignette" />
         </div>
         <Providers>{children}</Providers>

@@ -5,60 +5,112 @@ import { useAccount, useSwitchChain } from "wagmi";
 import { ConnectButton } from "./ConnectButton";
 import { robinhoodTestnet, visibleChains } from "@/lib/wagmi";
 
-const DEMO_PERIOD = 90;
-const DEMO_COMMIT = 60;
+/* ------------------------------------------------------------------ the pool */
 
-/** Decorative preview of a batch: orders arrive sealed, then all fill at one price. */
-function SealedBook() {
+// A compressed, decorative batch: sealed orders sink in, unseal, then clear on one line.
+const CYCLE = 14; // seconds
+const ORDERS = [
+  { a: 0.3, r: 0.86, t: 0.6 },
+  { a: 2.1, r: 0.78, t: 1.4 },
+  { a: 4.0, r: 0.9, t: 2.3 },
+  { a: 5.2, r: 0.7, t: 3.1 },
+  { a: 1.2, r: 0.95, t: 4.0 },
+  { a: 3.3, r: 0.82, t: 4.8 },
+  { a: 5.9, r: 0.88, t: 5.5 },
+  { a: 2.7, r: 0.74, t: 6.2 },
+];
+
+function Pool() {
   const [t, setT] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setT((x) => (x + 1) % DEMO_PERIOD), 1000);
-    return () => clearInterval(id);
+    const start = performance.now();
+    let raf = 0;
+    const tick = () => {
+      setT(((performance.now() - start) / 1000) % CYCLE);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
-  const whisper = t < DEMO_COMMIT;
-  const left = whisper ? DEMO_COMMIT - t : DEMO_PERIOD - t;
-  const rows = [
-    { side: "BUY", at: 4 },
-    { side: "SELL", at: 11 },
-    { side: "BUY", at: 19 },
-    { side: "SELL", at: 27 },
-    { side: "BUY", at: 38 },
-    { side: "SELL", at: 49 },
-  ];
-  const visible = rows.filter((r) => t >= r.at || !whisper);
+  const phase = t < 7.5 ? "Whisper" : t < 10.5 ? "Unseal" : "The Fill";
+  const W = 640;
+  const H = 300;
+  const cx = W / 2;
+  const cy = H / 2;
+  const rx = 290;
+  const ry = 110;
+  const fill = phase === "The Fill" ? Math.min(1, (t - 10.5) / 0.8) : 0;
+  const sweep = (t / CYCLE) * Math.PI * 2;
 
   return (
-    <div className="book" aria-hidden>
-      <div className="book-head">
-        <span className="mono muted small">BATCH #1,204</span>
-        <span className={`book-phase ${whisper ? "w" : "u"}`}>{whisper ? "Whisper" : "Unseal"}</span>
-        <span className="mono">{left}s</span>
-      </div>
-      <div className="bar">
-        <div style={{ width: `${(Math.min(t, DEMO_COMMIT) / DEMO_PERIOD) * 100}%`, background: "var(--violet)" }} />
-        <div style={{ width: `${(Math.max(0, t - DEMO_COMMIT) / DEMO_PERIOD) * 100}%`, background: "var(--mint)" }} />
-      </div>
-      <div className="book-rows">
-        {visible.map((r, i) => (
-          <div className="book-row" key={i}>
-            <span className={`side-tag ${whisper ? "hidden" : r.side === "BUY" ? "buy" : "sell"}`}>
-              {whisper ? "????" : r.side}
-            </span>
-            <span className={`redact ${whisper ? "" : "open"}`}>{whisper ? "████████" : `${(0.5 + i * 0.37).toFixed(2)} ETH`}</span>
-            <span className={`redact ${whisper ? "" : "open"}`}>{whisper ? "█████" : "$3,000"}</span>
-            <span className="lock">{whisper ? "🔒" : "✓"}</span>
-          </div>
+    <figure className="pool" aria-hidden>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <radialGradient id="well" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#0d1412" />
+            <stop offset="70%" stopColor="#070908" />
+            <stop offset="100%" stopColor="#050505" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="price" x1="0" x2="1">
+            <stop offset="0" stopColor="#8fd3b6" stopOpacity="0" />
+            <stop offset="0.5" stopColor="#8fd3b6" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#8fd3b6" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="url(#well)" />
+        {[1, 0.78, 0.56, 0.34, 0.14].map((k, i) => (
+          <ellipse key={i} cx={cx} cy={cy} rx={rx * k} ry={ry * k} fill="none" stroke="rgba(233,231,226,0.09)" strokeWidth="1" />
         ))}
-        {visible.length === 0 && <div className="muted small" style={{ padding: "14px 0" }}>Waiting for sealed orders…</div>}
-      </div>
-      <div className="book-foot">
-        <span className="muted small">Bots can see:</span>
-        <span className="mono small">{whisper ? "nothing" : "too late, batch is closed"}</span>
-      </div>
-    </div>
+
+        {/* slow sweep, like an instrument */}
+        <line
+          x1={cx}
+          y1={cy}
+          x2={cx + Math.cos(sweep) * rx}
+          y2={cy + Math.sin(sweep) * ry}
+          stroke="rgba(143,211,182,0.18)"
+          strokeWidth="1"
+        />
+
+        {/* sealed orders drifting toward the centre */}
+        {ORDERS.map((o, i) => {
+          if (t < o.t) return null;
+          const sink = Math.min(1, (t - o.t) / 6);
+          const r = o.r * (1 - 0.55 * sink);
+          const x = cx + Math.cos(o.a) * rx * r;
+          const y = cy + Math.sin(o.a) * ry * r;
+          const lit = phase !== "Whisper";
+          const fade = phase === "The Fill" ? 1 - fill : 1;
+          return (
+            <g key={i} opacity={fade}>
+              <circle cx={x} cy={y} r={lit ? 3.2 : 2.4} fill={lit ? "#8fd3b6" : "rgba(233,231,226,0.55)"} />
+              {!lit && <circle cx={x} cy={y} r={7} fill="none" stroke="rgba(233,231,226,0.12)" />}
+            </g>
+          );
+        })}
+
+        {/* one price */}
+        {fill > 0 && (
+          <g opacity={fill}>
+            <line x1={cx - rx * 0.92} y1={cy} x2={cx + rx * 0.92} y2={cy} stroke="url(#price)" strokeWidth="1.2" />
+            <text x={cx} y={cy - 14} textAnchor="middle" className="pool-price">
+              3,000.00
+            </text>
+          </g>
+        )}
+      </svg>
+      <figcaption>
+        <span>Batch 1,204</span>
+        <span className="pool-phase">{phase}</span>
+        <span>{phase === "Whisper" ? "Bots see: nothing" : phase === "Unseal" ? "Window closed" : "Everyone fills at one price"}</span>
+      </figcaption>
+    </figure>
   );
 }
+
+/* ------------------------------------------------------------------ page */
 
 export function Landing({ deployed }: { deployed: boolean }) {
   const { isConnected, chainId } = useAccount();
@@ -66,128 +118,92 @@ export function Landing({ deployed }: { deployed: boolean }) {
   const supported = visibleChains.some((c) => c.id === chainId);
 
   const primary = !isConnected ? (
-    <ConnectButton className="btn btn-primary btn-lg" label="Launch app" />
+    <ConnectButton className="btn-pill" label="Launch app" />
   ) : !supported ? (
-    <button className="btn btn-primary btn-lg" onClick={() => switchChain({ chainId: robinhoodTestnet.id })}>
+    <button className="btn-pill" onClick={() => switchChain({ chainId: robinhoodTestnet.id })}>
       Switch to {robinhoodTestnet.name}
     </button>
   ) : !deployed ? (
-    <a className="btn btn-primary btn-lg" href="/deploy">Deploy from your wallet →</a>
+    <a className="btn-pill" href="/deploy">Deploy from your wallet</a>
   ) : null;
 
   return (
     <div className="landing">
       <section className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <span className="dot" /> Dark pool · Robinhood Chain Testnet
-          </div>
-          <h1>
-            Filled.
-            <br />
-            <span className="glow">Not seen.</span>
-          </h1>
-          <p className="lead">
-            Trade size without showing your hand. Orders go in sealed, nobody sees side, size or price, and every
-            match fills at <b>one fair price</b>. No front-running. No sandwiches. No price impact.
-          </p>
-          <div className="cta-row">
-            {primary}
-            <a className="btn btn-lg btn-ghost" href="#how">How it works</a>
-          </div>
-          {isConnected && supported && !deployed && (
-            <p className="small muted" style={{ marginTop: 12 }}>
-              Silent Fill isn’t live on this network yet. Deploy it from your wallet in about 2 minutes.
-            </p>
-          )}
+        <p className="kicker">Sealed-bid dark pool · Robinhood Chain testnet</p>
+        <h1 className="display">
+          Filled.
+          <br />
+          <em>Not seen.</em>
+        </h1>
+        <p className="lead">
+          Orders enter sealed. Nobody sees side, size or price until the batch closes, and then every match clears at
+          one fair price.
+        </p>
+        <div className="cta">
+          {primary}
+          <a className="link-arrow" href="#how">How it works</a>
         </div>
-        <SealedBook />
+        {isConnected && supported && !deployed && (
+          <p className="hint">Silent Fill isn’t live on this network yet. Deploying from your wallet takes about two minutes.</p>
+        )}
+        <Pool />
       </section>
 
-      <section className="strip">
-        <div><b className="mint">0</b><span>snipers fed</span></div>
-        <div><b>1</b><span>price per batch</span></div>
-        <div><b>90s</b><span>batch cycle</span></div>
-        <div><b>0%</b><span>price impact</span></div>
+      <section className="figures">
+        <div><b>0</b><span>Snipers fed</span></div>
+        <div><b>1</b><span>Price per batch</span></div>
+        <div><b>90s</b><span>Batch cycle</span></div>
+        <div><b>0%</b><span>Price impact</span></div>
       </section>
 
-      <section className="compare">
-        <div className="cmp bad">
-          <h3>On a normal DEX</h3>
-          <ul>
-            <li>Your swap sits in the public mempool</li>
-            <li>Bots buy in front of you and sell right after</li>
-            <li>Big orders slide down the AMM curve</li>
-            <li>Whale wallets get tracked and copy-traded</li>
-          </ul>
+      <section className="why">
+        <div className="why-head">
+          <p className="kicker">Why a dark pool</p>
+          <h2 className="title">On a public exchange, every order is a signal.</h2>
         </div>
-        <div className="cmp good">
-          <h3>On Silent Fill</h3>
-          <ul>
-            <li>Orders are sealed hashes until the batch closes</li>
-            <li>Nothing to front-run: everyone gets the same price</li>
-            <li>Fills at the oracle midpoint, not along a curve</li>
-            <li>Bigger side fills pro-rata; leftovers just unlock</li>
-          </ul>
+        <div className="table">
+          <div className="tr th"><span /><span>Public DEX</span><span>Silent Fill</span></div>
+          <div className="tr"><span>Your order</span><span>Broadcast before it executes</span><span>A sealed hash until the batch closes</span></div>
+          <div className="tr"><span>Front-running</span><span>Bots buy ahead and sell after</span><span>Nothing to see, nothing to front-run</span></div>
+          <div className="tr"><span>Price</span><span>Slides along the curve</span><span>One oracle midpoint for everyone</span></div>
+          <div className="tr"><span>Size</span><span>Moves the market</span><span>No price impact</span></div>
         </div>
       </section>
 
       <section id="how" className="how">
-        <h2 className="section-title">How a batch works</h2>
-        <div className="how-grid">
-          <div className="how-card">
-            <div className="how-num violet">01</div>
+        <p className="kicker">How a batch works</p>
+        <ol className="steps3">
+          <li>
+            <span className="num">01</span>
             <h3>Whisper</h3>
-            <p>Post a sealed order with a small refundable bond. On-chain it’s just a hash: no side, no size, no price.</p>
-            <span className="mono small muted">60 seconds</span>
-          </div>
-          <div className="how-card">
-            <div className="how-num mint">02</div>
+            <p>Post a sealed order with a small refundable bond. On-chain it’s only a hash: no side, no size, no price.</p>
+            <span className="dur">60 seconds</span>
+          </li>
+          <li>
+            <span className="num">02</span>
             <h3>Unseal</h3>
-            <p>The app reveals your order for you. The window is closed to new orders, so there’s nobody left to front-run.</p>
-            <span className="mono small muted">30 seconds</span>
-          </div>
-          <div className="how-card">
-            <div className="how-num">03</div>
+            <p>The app reveals your order for you. The window is already closed to new orders, so there’s nobody left to react.</p>
+            <span className="dur">30 seconds</span>
+          </li>
+          <li>
+            <span className="num">03</span>
             <h3>The Fill</h3>
-            <p>Every matching buy and sell settles at one oracle midpoint price. If the price feed breaks, the batch cancels and funds unlock.</p>
-            <span className="mono small muted">one transaction</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="features">
-        <div className="feat">
-          <div className="feat-icon">🤫</div>
-          <h3>Sealed orders</h3>
-          <p>Commit-reveal keeps your intent hidden while orders are being collected.</p>
-        </div>
-        <div className="feat">
-          <div className="feat-icon">⚖️</div>
-          <h3>One fair price</h3>
-          <p>Every fill in a batch clears at the same price. No one gets a better deal for being faster.</p>
-        </div>
-        <div className="feat">
-          <div className="feat-icon">🛡️</div>
-          <h3>Funds never trapped</h3>
-          <p>Bad oracle? The batch cancels and everything unlocks. Withdraw free balance any time.</p>
-        </div>
-        <div className="feat">
-          <div className="feat-icon">🔑</div>
-          <h3>Your keys</h3>
-          <p>Non-custodial smart contracts. You sign every action from your own wallet.</p>
-        </div>
+            <p>Every matching buy and sell settles at one oracle midpoint. If the price feed fails, the batch cancels and funds unlock.</p>
+            <span className="dur">One transaction</span>
+          </li>
+        </ol>
       </section>
 
       <section className="faq">
-        <h2 className="section-title">FAQ</h2>
+        <p className="kicker">Questions</p>
         <details>
           <summary>What is a dark pool?</summary>
-          <p>A venue where orders are hidden until they trade. Big traders use them so the market can’t react to their order before it fills.</p>
+          <p>A venue where orders stay hidden until they trade, so the market can’t react to them first. Large traders have used them for decades.</p>
         </details>
         <details>
-          <summary>What’s the bond for?</summary>
-          <p>A small deposit locked when you Whisper and returned when you Unseal. It stops people from posting orders they never intend to reveal.</p>
+          <summary>What is the bond for?</summary>
+          <p>A small deposit locked when you Whisper and returned when you Unseal. It keeps people from posting orders they never mean to reveal.</p>
         </details>
         <details>
           <summary>What price do I get?</summary>
@@ -195,13 +211,15 @@ export function Landing({ deployed }: { deployed: boolean }) {
         </details>
         <details>
           <summary>Is this real money?</summary>
-          <p>No. Silent Fill is on Robinhood Chain <b>testnet</b> with test tokens from the built-in faucet. It hasn’t been audited yet.</p>
+          <p>No. Silent Fill runs on Robinhood Chain testnet with test tokens from the built-in faucet, and it hasn’t been audited yet.</p>
         </details>
       </section>
 
-      <section className="final-cta">
-        <h2>Trade quiet.</h2>
-        <div className="cta-row" style={{ justifyContent: "center" }}>{primary}</div>
+      <section className="closing">
+        <h2 className="display small">
+          Trade <em>quiet.</em>
+        </h2>
+        <div className="cta center">{primary}</div>
       </section>
     </div>
   );
