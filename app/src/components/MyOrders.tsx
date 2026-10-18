@@ -16,7 +16,7 @@ type Store = {
 
 export function MyOrders({ m, now, store }: { m: Market; now: number; store: Store }) {
   const { address } = useAccount();
-  const { batchId, phase } = batchClock(m, now);
+  const { batchId, phase, secondsLeft } = batchClock(m, now);
   const tx = useTx();
   const [autoReveal, setAutoReveal] = useState(true);
   const attempted = useRef(new Set<string>());
@@ -82,6 +82,22 @@ export function MyOrders({ m, now, store }: { m: Market; now: number; store: Sto
 
   const visible = store.orders.filter((o) => o.status !== "commit-failed").slice(0, 20);
 
+  // Orders whose secret still has to be revealed from this browser.
+  const needsTab = store.orders.filter(
+    (o) => (o.status === "committed" || o.status === "pending") && BigInt(o.batchId) >= batchId,
+  );
+
+  // Ask before closing or leaving the page while an order still needs unsealing.
+  useEffect(() => {
+    if (needsTab.length === 0) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [needsTab.length]);
+
   return (
     <section className="panel">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -114,10 +130,17 @@ export function MyOrders({ m, now, store }: { m: Market; now: number; store: Sto
       )}
 
       {tx.msg && <div className={`status ${tx.msg.error ? "err" : "muted"}`}>{tx.msg.text}</div>}
-      {address && visible.some((o) => o.status === "committed") && (
-        <div className="notice" style={{ marginTop: 12 }}>
-          Keep this tab open until your orders are unsealed. The secret needed to reveal them is stored only in this
-          browser. Miss the Unseal window and you lose the bond.
+      {address && needsTab.length > 0 && (
+        <div className="notice keep-open" style={{ marginTop: 12 }}>
+          <b>
+            🤫 Keep this tab open:{" "}
+            {phase === "whisper" ? `your order unseals in ${secondsLeft}s` : `unsealing now (${secondsLeft}s left)`}
+          </b>
+          <div style={{ marginTop: 4 }}>
+            The secret that reveals your order lives only in this browser. Closed it by accident? Reopen this page
+            before Unseal ends and it will still unseal automatically. Miss it and you lose the{" "}
+            {Number(m.bond) / 10 ** m.quoteDecimals} {m.quoteSymbol} bond.
+          </div>
         </div>
       )}
     </section>

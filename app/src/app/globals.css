@@ -284,3 +284,5 @@ a.btn-primary { color: #06140f; }
   background: #1d1213; border: 1px solid rgba(255, 107, 107, 0.4); color: #ffc9c9; border-radius: 10px; padding: 10px;
 }
 .hero .connect-err, .final-cta .connect-err { left: 0; right: auto; }
+
+.keep-open { position: sticky; bottom: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
