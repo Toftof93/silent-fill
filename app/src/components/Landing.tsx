@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount, useConnect, useSwitchChain } from "wagmi";
+import { useAccount, useSwitchChain } from "wagmi";
+import { ConnectButton } from "./ConnectButton";
 import { robinhoodTestnet, visibleChains } from "@/lib/wagmi";
 
 const DEMO_PERIOD = 90;
@@ -61,21 +62,11 @@ function SealedBook() {
 
 export function Landing({ deployed }: { deployed: boolean }) {
   const { isConnected, chainId } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
   const { switchChain } = useSwitchChain();
-  const [hasWallet, setHasWallet] = useState(true);
-  useEffect(() => setHasWallet(typeof window !== "undefined" && "ethereum" in window), []);
-  const canConnect = hasWallet && connectors.length > 0;
   const supported = visibleChains.some((c) => c.id === chainId);
 
   const primary = !isConnected ? (
-    <button
-      className="btn btn-primary btn-lg"
-      disabled={isPending || !canConnect}
-      onClick={() => connect({ connector: connectors[0] })}
-    >
-      {isPending ? "Connecting…" : "Launch app"}
-    </button>
+    <ConnectButton className="btn btn-primary btn-lg" label="Launch app" />
   ) : !supported ? (
     <button className="btn btn-primary btn-lg" onClick={() => switchChain({ chainId: robinhoodTestnet.id })}>
       Switch to {robinhoodTestnet.name}
@@ -104,11 +95,6 @@ export function Landing({ deployed }: { deployed: boolean }) {
             {primary}
             <a className="btn btn-lg btn-ghost" href="#how">How it works</a>
           </div>
-          {!canConnect && !isConnected && (
-            <p className="small muted" style={{ marginTop: 12 }}>
-              No wallet found. Install Rabby or MetaMask, or open this page in your wallet app’s browser.
-            </p>
-          )}
           {isConnected && supported && !deployed && (
             <p className="small muted" style={{ marginTop: 12 }}>
               Silent Fill isn’t live on this network yet. Deploy it from your wallet in about 2 minutes.

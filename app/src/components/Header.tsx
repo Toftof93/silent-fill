@@ -1,11 +1,11 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import { useAccount, useDisconnect, useSwitchChain } from "wagmi";
+import { ConnectButton } from "./ConnectButton";
 import { chains } from "@/lib/wagmi";
 
 export function Header() {
   const { address, isConnected, chain } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
 
@@ -35,13 +35,7 @@ export function Header() {
             {address!.slice(0, 6)}…{address!.slice(-4)}
           </button>
         ) : (
-          <button
-            className="btn btn-primary btn-sm"
-            disabled={isPending || connectors.length === 0}
-            onClick={() => connect({ connector: connectors[0] })}
-          >
-            {isPending ? "Connecting…" : "Connect wallet"}
-          </button>
+          <ConnectButton />
         )}
       </div>
     </header>
