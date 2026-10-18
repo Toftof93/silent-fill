@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import "@fontsource/instrument-serif/400.css";
 import "@fontsource/instrument-serif/400-italic.css";
 import { Providers } from "./providers";
+import { DarkWater } from "@/components/DarkWater";
 import "./globals.css";
 
 const DESCRIPTION = "Filled. Not seen. A sealed-bid dark pool on Robinhood Chain: no front-running, no sandwiches, one fair price.";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <div className="backdrop" aria-hidden>
+          <DarkWater />
           <div className="glow-a" />
           <div className="grain" />
           <div className="vignette" />
