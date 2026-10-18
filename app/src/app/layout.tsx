@@ -27,6 +27,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <div className="backdrop" aria-hidden>
+          <div className="glow-a" />
+          <div className="glow-b" />
+          <div className="grid" />
+          <div className="ripples"><span /><span /><span /><span /></div>
+          <div className="vignette" />
+        </div>
         <Providers>{children}</Providers>
       </body>
     </html>
