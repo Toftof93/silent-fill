@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useAccount, useBalance, useChainId, useSwitchChain } from "wagmi";
+import { formatEther } from "viem";
 import { getPublicClient, getWalletClient } from "wagmi/actions";
 import type { Abi, Address, Hex, PublicClient, WalletClient } from "viem";
 import { Header } from "@/components/Header";
@@ -46,6 +47,15 @@ export default function DeployPage() {
   const [current, setCurrent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Gas balance on Robinhood Chain Testnet, read straight from the chain (not from the wallet).
+  const { data: gas, refetch: refetchGas, isError: gasError } = useBalance({
+    address,
+    chainId: robinhoodTestnet.id,
+    query: { enabled: !!address, refetchInterval: 8_000 },
+  });
+  const MIN_GAS = 2_000_000_000_000_000n; // 0.002 ETH is plenty for all 7 txs on testnet
+  const lowGas = gas !== undefined && gas.value < MIN_GAS && chain?.id !== 31337;
 
   useEffect(() => {
     if (!address) return;
@@ -162,6 +172,37 @@ export default function DeployPage() {
             contracts. You approve <b>7 transactions</b>. Your key never leaves your wallet. If you get interrupted,
             come back and tap Deploy again to continue where you left off.
           </p>
+
+          {isConnected && (
+            <div className="diag">
+              <div className="kv"><span>Wallet</span><b className="mono">{address!.slice(0, 6)}…{address!.slice(-4)}</b></div>
+              <div className="kv">
+                <span>Network</span>
+                <b className={chain?.id === robinhoodTestnet.id ? "ok" : "err"}>
+                  {chain?.name ?? "Unknown network"} {chain?.id === robinhoodTestnet.id ? "✓" : "✕"}
+                </b>
+              </div>
+              <div className="kv">
+                <span>Test ETH (Robinhood testnet)</span>
+                <b className={lowGas || gasError ? "err" : "ok"}>
+                  {gas ? `${Number(formatEther(gas.value)).toFixed(4)} ETH ${lowGas ? "✕" : "✓"}` : gasError ? "Couldn’t load" : "Loading…"}
+                </b>
+              </div>
+            </div>
+          )}
+
+          {isConnected && lowGas && (
+            <div className="notice warn" style={{ marginBottom: 12 }}>
+              This wallet has almost no test ETH on Robinhood Chain Testnet, so it can’t pay gas. Claim some at{" "}
+              <a href="https://faucet.testnet.chain.robinhood.com" target="_blank" rel="noreferrer" style={{ color: "inherit" }}>
+                faucet.testnet.chain.robinhood.com
+              </a>{" "}
+              for <b className="mono">{address}</b> (this exact address), then wait a minute.
+              <div style={{ marginTop: 8 }}>
+                <button className="btn btn-sm" onClick={() => refetchGas()}>Check again</button>
+              </div>
+            </div>
+          )}
 
           {!isConnected ? (
             <div className="notice">Connect your wallet first (top right). On a phone, open this page inside your wallet app’s browser.</div>
