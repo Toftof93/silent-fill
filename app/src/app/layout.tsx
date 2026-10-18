@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <div className="backdrop" aria-hidden>
+          <div className="blobs"><i /><i /><i /></div>
           <DarkWater />
           <div className="glow-a" />
           <div className="grain" />

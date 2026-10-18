@@ -5,11 +5,19 @@ import { useEffect, useRef } from "react";
 // Full-screen animated "dark pool" water: domain-warped noise with caustic light,
 // rendered at reduced resolution for speed. Falls back to the CSS backdrop if WebGL is missing.
 const FRAG = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 uniform vec2 uRes;
 uniform float uTime;
 
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float hash(vec2 p) {
+  p = fract(p * vec2(0.1031, 0.1030));
+  p += dot(p, p.yx + 33.33);
+  return fract((p.x + p.y) * p.x);
+}
 float noise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
   vec2 u = f * f * (3.0 - 2.0 * f);
@@ -25,7 +33,7 @@ float fbm(vec2 p) {
 void main() {
   vec2 uv = gl_FragCoord.xy / uRes.xy;
   vec2 p = (gl_FragCoord.xy - 0.5 * uRes.xy) / uRes.y;
-  float t = uTime * 0.045;
+  float t = mod(uTime, 600.0) * 0.045;
 
   // slow, warped currents
   vec2 q = vec2(fbm(p * 1.6 + vec2(0.0, t)), fbm(p * 1.6 + vec2(5.2, -t)));
@@ -101,7 +109,7 @@ export function DarkWater() {
     let raf = 0;
     const draw = () => {
       gl.uniform2f(uRes, canvas.width, canvas.height);
-      gl.uniform1f(uTime, 20 + (performance.now() - start) / 1000);
+      gl.uniform1f(uTime, (20 + (performance.now() - start) / 1000) % 600);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       if (!still && !document.hidden) raf = requestAnimationFrame(draw);
     };

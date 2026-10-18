@@ -312,6 +312,22 @@ a.btn-primary { color: #0a0a0a; }
 input[type="checkbox"] { accent-color: var(--mint); }
 .btn-block.btn-primary { border-radius: 999px; }
 
-.backdrop .water { position: absolute; inset: 0; width: 100%; height: 100%; filter: blur(2px) saturate(1.15); }
+/* GPU-free layer: always visible, even if WebGL is missing or fails */
+.backdrop .blobs { position: absolute; inset: 0; }
+.backdrop .blobs i {
+  position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.9;
+  animation: drift 28s ease-in-out infinite alternate;
+}
+.backdrop .blobs i:nth-child(1) { width: 70vmax; height: 50vmax; left: -15vmax; top: -18vmax; background: radial-gradient(closest-side, rgba(30, 120, 96, 0.55), transparent); }
+.backdrop .blobs i:nth-child(2) { width: 60vmax; height: 45vmax; right: -20vmax; top: -8vmax; background: radial-gradient(closest-side, rgba(84, 60, 170, 0.40), transparent); animation-duration: 34s; animation-delay: -8s; }
+.backdrop .blobs i:nth-child(3) { width: 55vmax; height: 40vmax; left: 20vmax; top: 22vmax; background: radial-gradient(closest-side, rgba(20, 90, 80, 0.38), transparent); animation-duration: 40s; animation-delay: -16s; }
+@keyframes drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+  100% { transform: translate3d(-5vmax, 7vmax, 0) scale(0.95); }
+}
+@media (prefers-reduced-motion: reduce) { .backdrop .blobs i { animation: none; } }
+/* water adds light on top; if it ever renders black it simply adds nothing */
+.backdrop .water { position: absolute; inset: 0; width: 100%; height: 100%; filter: blur(2px) saturate(1.15); mix-blend-mode: screen; }
 /* keep text readable over the water */
 .backdrop .vignette { background: radial-gradient(ellipse at 50% 35%, transparent 35%, rgba(0, 0, 0, 0.55) 100%), linear-gradient(180deg, transparent 0%, rgba(5, 5, 5, 0.25) 55%, rgba(5, 5, 5, 0.75) 100%); }
