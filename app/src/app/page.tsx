@@ -1,6 +1,7 @@
 "use client";
 
-import { useAccount, useChainId } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { robinhoodTestnet } from "@/lib/wagmi";
 import { Header } from "@/components/Header";
 import { Landing } from "@/components/Landing";
 import { BatchClock } from "@/components/BatchClock";
@@ -12,7 +13,8 @@ import { useSavedOrders } from "@/lib/orders";
 
 export default function Home() {
   const chainId = useChainId();
-  const { address } = useAccount();
+  const { address, chain } = useAccount();
+  const { switchChain, isPending: switching } = useSwitchChain();
   const deployment = useDeployment();
   const m = useMarket();
   const now = useNow();
@@ -24,6 +26,14 @@ export default function Home() {
 
       {!address || !deployment ? (
         <Landing deployed={!!deployment} />
+      ) : !chain ? (
+        <div className="hero-empty">
+          <h1 className="display small">Wrong <em>network.</em></h1>
+          <p>Your wallet is on a network Silent Fill doesn’t run on. Switch to {robinhoodTestnet.name} to trade.</p>
+          <button className="btn-pill" disabled={switching} onClick={() => switchChain({ chainId: robinhoodTestnet.id })}>
+            {switching ? "Check your wallet…" : `Switch to ${robinhoodTestnet.name}`}
+          </button>
+        </div>
       ) : !m ? (
         <div className="hero-empty">
           <p>Loading market…</p>
