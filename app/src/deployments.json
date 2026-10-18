@@ -1,1 +1,10 @@
-{}
+{
+  "46630": {
+    "base": "0xd02e4d72fa53a5bfaffd6fa87de73a42b0b5d3c0",
+    "quote": "0xcc865250abeb7cbca430f2728b7697f791f0ffe6",
+    "feed": "0xdb3a5c90f574c8584a3890064d8e4e69a58df871",
+    "oracle": "0xcfcca0cee89067e13c3c6d22d997bf123eee2ef9",
+    "vault": "0x52a06df184880f4ca95ebd40685c0c7c099636b2",
+    "auction": "0x24fd73ec4bf6e7f5eb1d6b2c1e248a74aed52786"
+  }
+}
