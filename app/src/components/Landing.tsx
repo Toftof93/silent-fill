@@ -222,7 +222,7 @@ export function Landing({ deployed }: { deployed: boolean }) {
         </h2>
         <div className="cta center">
           {primary}
-          <a className="link-arrow" href={X_URL} target="_blank" rel="noreferrer">Follow on Twitter</a>
+          <a className="link-arrow" href={X_URL} target="_blank" rel="noreferrer">Follow on X</a>
         </div>
       </section>
     </div>
