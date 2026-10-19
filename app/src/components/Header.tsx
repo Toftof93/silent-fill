@@ -2,6 +2,7 @@
 
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi";
 import { ConnectButton } from "./ConnectButton";
+import { Mark } from "./Mark";
 import { chains } from "@/lib/wagmi";
 
 export function Header() {
@@ -14,8 +15,8 @@ export function Header() {
   return (
     <header className="header">
       <div className="logo">
-        <div className="logo-mark">✓</div>
-        Silent Fill
+        <Mark size={26} />
+        <span className="wordmark">Silent Fill</span>
         <span className="tagline">Filled. Not seen.</span>
       </div>
       <div className="header-right">

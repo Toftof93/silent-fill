@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+body{width:1500px;height:500px;position:relative}
+canvas{position:absolute;inset:0;width:100%;height:100%;filter:blur(1.5px) saturate(1.15)}
+.shade{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,transparent 30%,rgba(0,0,0,.55) 100%),linear-gradient(180deg,transparent 40%,rgba(5,5,5,.6) 100%)}
+.c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.k{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#a9a7a1;margin-bottom:18px}
+h1{margin:0;font-size:112px;line-height:.9;letter-spacing:-.02em}
+h1 em{color:var(--jade)}
+.brand{position:absolute;right:64px;bottom:40px;display:flex;align-items:center;gap:12px;font-size:28px}
+.brand svg{width:34px;height:34px}
+.url{position:absolute;right:64px;top:40px;font-size:18px;color:#a9a7a1}
+</style></head><body>
+<canvas id="w" width="750" height="250"></canvas><div class="shade"></div>
+<div class="c"><div class="k mono">Sealed-bid dark pool · Robinhood Chain</div><h1 class="serif">Filled. <em>Not seen.</em></h1></div>
+
+<div class="url mono">silentfill.xyz</div>
+<script src="water.js"></script><script>water(document.getElementById("w"), 31.5)</script>
+</body></html>
