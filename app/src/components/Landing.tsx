@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
 import { ConnectButton } from "./ConnectButton";
+import { X_HANDLE, X_URL } from "@/lib/social";
 import { robinhoodTestnet, visibleChains } from "@/lib/wagmi";
 
 /* ------------------------------------------------------------------ the pool */
@@ -219,7 +220,10 @@ export function Landing({ deployed }: { deployed: boolean }) {
         <h2 className="display small">
           Trade <em>quiet.</em>
         </h2>
-        <div className="cta center">{primary}</div>
+        <div className="cta center">
+          {primary}
+          <a className="link-arrow" href={X_URL} target="_blank" rel="noreferrer">Follow @{X_HANDLE}</a>
+        </div>
       </section>
     </div>
   );

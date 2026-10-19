@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@silentfillxyz",
+    creator: "@silentfillxyz",
     title: "Silent Fill · Filled. Not seen.",
     description: DESCRIPTION,
   },

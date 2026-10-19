@@ -3,6 +3,7 @@
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi";
 import { ConnectButton } from "./ConnectButton";
 import { Mark } from "./Mark";
+import { XLink } from "./XLink";
 import { chains } from "@/lib/wagmi";
 
 export function Header() {
@@ -20,6 +21,7 @@ export function Header() {
         <span className="tagline">Filled. Not seen.</span>
       </div>
       <div className="header-right">
+        <XLink />
         {isConnected &&
           (wrongChain ? (
             <button className="btn btn-sm" onClick={() => switchChain({ chainId: chains[0].id })}>

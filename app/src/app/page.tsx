@@ -10,6 +10,7 @@ import { OrderForm } from "@/components/OrderForm";
 import { MyOrders } from "@/components/MyOrders";
 import { useDeployment, useMarket, useNow } from "@/lib/market";
 import { useSavedOrders } from "@/lib/orders";
+import { XLink } from "@/components/XLink";
 
 export default function Home() {
   const chainId = useChainId();
@@ -52,7 +53,8 @@ export default function Home() {
       )}
 
       <footer className="footer">
-        Silent Fill · sealed-bid batch auctions on Robinhood Chain · unaudited testnet software
+        <span>Silent Fill · sealed-bid batch auctions on Robinhood Chain · unaudited testnet software</span>
+        <XLink label />
       </footer>
     </main>
   );

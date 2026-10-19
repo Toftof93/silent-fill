@@ -333,3 +333,10 @@ input[type="checkbox"] { accent-color: var(--mint); }
 .backdrop .vignette { background: radial-gradient(ellipse at 50% 35%, transparent 35%, rgba(0, 0, 0, 0.55) 100%), linear-gradient(180deg, transparent 0%, rgba(5, 5, 5, 0.25) 55%, rgba(5, 5, 5, 0.75) 100%); }
 
 .wordmark { font-family: var(--serif); font-weight: 400; font-size: 24px; letter-spacing: -0.01em; }
+
+.x-link {
+  display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none;
+  padding: 7px; border-radius: 999px; transition: color 0.2s;
+}
+.x-link:hover { color: var(--text); }
+.footer { display: flex; justify-content: center; align-items: center; gap: 18px; flex-wrap: wrap; }
