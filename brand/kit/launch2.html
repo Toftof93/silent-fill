@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+body{width:1600px;height:900px;position:relative;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;filter:blur(1px) saturate(1.5) brightness(1.35)}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,4,4,.88) 0%,rgba(3,4,4,.55) 45%,rgba(3,4,4,.1) 75%),radial-gradient(ellipse at 72% 50%,transparent 20%,rgba(0,0,0,.55) 75%)}
+/* right: the pool */
+.pool{position:absolute;left:1150px;top:450px;transform:translate(-50%,-50%)}
+.ring{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(143,211,182,.22);transform:translate(-50%,-50%)}
+.mk{position:absolute;left:50%;top:50%;width:470px;height:470px;transform:translate(-50%,-50%);filter:drop-shadow(0 0 40px rgba(143,211,182,.45)) drop-shadow(0 0 120px rgba(143,211,182,.25))}
+.price{position:absolute;left:820px;right:-10px;top:487px;height:2px;background:linear-gradient(90deg,transparent,#8fd3b6 20%,#8fd3b6 80%,transparent);box-shadow:0 0 18px #8fd3b6}
+.price span{position:absolute;right:36px;top:14px;font-family:"Geist Mono";font-size:20px;color:#8fd3b6;letter-spacing:.06em}
+.chip{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:rgba(10,14,13,.75);border:1px solid rgba(233,231,226,.14);
+ font-family:"Geist Mono";font-size:17px;color:#cfcdc7;backdrop-filter:blur(4px)}
+.chip b{color:#a597e0;background:rgba(165,151,224,.16);border-radius:6px;padding:3px 7px;font-weight:600;font-size:14px}
+.chip i{font-style:normal;color:#4b524f;letter-spacing:-1px}
+.chip u{text-decoration:none;filter:grayscale(1) brightness(.7)}
+/* left: copy */
+.copy{position:absolute;left:96px;top:0;bottom:0;width:720px;display:flex;flex-direction:column;justify-content:center}
+.live{display:inline-flex;align-self:flex-start;align-items:center;gap:10px;font-family:"Geist Mono";font-size:17px;letter-spacing:.14em;text-transform:uppercase;
+ color:#06140f;background:#8fd3b6;border-radius:999px;padding:10px 18px;font-weight:600;box-shadow:0 0 30px rgba(143,211,182,.35)}
+.live i{width:9px;height:9px;border-radius:50%;background:#06140f}
+.tk{font-family:"Instrument Serif";font-size:250px;line-height:.82;letter-spacing:-.03em;margin:30px 0 34px;color:#e9e7e2}
+.tk em{font-style:normal;color:#8fd3b6;text-shadow:0 0 50px rgba(143,211,182,.45)}
+.tag{font-family:"Instrument Serif";font-size:64px;line-height:1;margin:0}.tag em{color:#8fd3b6}
+.sub{margin-top:26px;font-size:24px;line-height:1.5;color:#b9b7b1;max-width:620px}
+.foot{position:absolute;left:96px;bottom:54px;display:flex;align-items:center;gap:26px;font-family:"Geist Mono";font-size:19px;color:#a9a7a1}
+.foot .b{display:flex;align-items:center;gap:12px;font-family:"Instrument Serif";font-size:30px;color:#e9e7e2}.foot svg{width:34px;height:34px}
+.dot{width:5px;height:5px;border-radius:50%;background:#5d5c58}
+</style></head><body>
+<canvas id="w" width="800" height="450"></canvas><div class="shade"></div>
+<div class="pool">
+ <div class="ring" style="width:620px;height:620px"></div>
+ <div class="ring" style="width:800px;height:800px;opacity:.7"></div>
+ <div class="ring" style="width:1000px;height:1000px;opacity:.4"></div>
+ <div class="mk"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><clipPath id="m"><circle cx="50" cy="50" r="34"/></clipPath></defs><circle cx="50" cy="50" r="40" fill="none" stroke="#e9e7e2" stroke-width="2.4"/><rect x="0" y="58" width="100" height="42" fill="#8fd3b6" clip-path="url(#m)"/><line x1="1" y1="58" x2="99" y2="58" stroke="#8fd3b6" stroke-width="1.5"/></svg></div>
+</div>
+<div class="price"><span>3,000.00</span></div>
+<div class="chip" style="left:900px;top:150px"><b>????</b><i>████████</i><u>🔒</u></div>
+<div class="chip" style="left:1310px;top:120px"><b>????</b><i>█████</i><u>🔒</u></div>
+<div class="chip" style="left:1370px;top:700px"><b>????</b><i>███████</i><u>🔒</u></div>
+<div class="chip" style="left:880px;top:690px"><b>????</b><i>██████</i><u>🔒</u></div>
+<div class="copy">
+ <div class="live"><i></i>Now live · Robinhood Chain</div>
+ <div class="tk">$<em>FILL</em></div>
+ <p class="tag">Filled. <em>Not seen.</em></p>
+ <div class="sub">The dark pool where nobody sees your trade coming. Sealed orders, one fair price, zero snipers fed.</div>
+</div>
+<div class="foot"><span class="b"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><clipPath id="m"><circle cx="50" cy="50" r="34"/></clipPath></defs><circle cx="50" cy="50" r="40" fill="none" stroke="#e9e7e2" stroke-width="2.4"/><rect x="0" y="58" width="100" height="42" fill="#8fd3b6" clip-path="url(#m)"/><line x1="1" y1="58" x2="99" y2="58" stroke="#8fd3b6" stroke-width="1.5"/></svg> Silent Fill</span><span class="dot"></span><span>silentfill.xyz</span><span class="dot"></span><span>@silentfillxyz</span></div>
+<script src="water.js"></script><script>water(document.getElementById("w"), 57.0)</script>
+</body></html>
